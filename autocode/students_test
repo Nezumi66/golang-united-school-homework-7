@@ -1,7 +1,11 @@
 package coverage
 
 import (
+	"errors"
 	"os"
+	"strconv"
+	"testing"
+	"time"
 )
 
 // DO NOT EDIT THIS FUNCTION
@@ -17,4 +21,127 @@ func init() {
 }
 
 // WRITE YOUR CODE BELOW
+var Peoples = People{
+	{
+		firstName: "Alfa",
+		lastName:  "Beta",
+		birthDay:  time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC),
+	},
+	{
+		firstName: "Charlie",
+		lastName:  "Delta",
+		birthDay:  time.Date(2001, 2, 1, 0, 0, 0, 0, time.UTC),
+	},
+	{
+		firstName: "Beta",
+		lastName:  "Delta",
+		birthDay:  time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC),
+	},
+	{
+		firstName: "Alfa",
+		lastName:  "Delta",
+		birthDay:  time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC),
+	},
+}
 
+func Test_Len(t *testing.T) {
+	if Peoples.Len() != 4 {
+		t.Errorf("error in Len(): expected %d, got %d", 4, Peoples.Len())
+	}
+}
+
+func Test_Less(t *testing.T) {
+	var testData = []struct {
+		People
+		i      int
+		j      int
+		output bool
+	}{
+		{Peoples, 0, 1, false},
+		{Peoples, 1, 0, true},
+		{Peoples, 0, 2, true},
+		{Peoples, 2, 0, false},
+		{Peoples, 0, 3, true},
+		{Peoples, 3, 0, false},
+	}
+	for _, v := range testData {
+		if v.People.Less(v.i, v.j) != v.output {
+			t.Errorf("error in Less()")
+		}
+	}
+}
+
+func Test_Swap(t *testing.T) {
+	person1 := Peoples[0]
+	person2 := Peoples[1]
+	Peoples.Swap(0, 1)
+	if Peoples[0] != person2 || Peoples[1] != person1 {
+		t.Errorf("error in Swap()")
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func Test_New(t *testing.T) {
+	result, err := New("abc")
+	if result != nil || !errors.Is(err, strconv.ErrSyntax) {
+		t.Errorf("error in New(): Wrong string input")
+	}
+
+	result, err = New("1 2 3\n 4 5")
+	if result != nil || err.Error() != "Rows need to be the same length" {
+		t.Errorf("error in New(): Cols != Rows")
+	}
+
+	result, err = New("1 2\n 3 4")
+	expected := []int{1, 2, 3, 4}
+	for k, v := range result.data {
+		if v != expected[k] {
+			t.Errorf("Wrong Matrix")
+		}
+	}
+}
+
+func Test_Rows(t *testing.T) {
+	result := Matrix{3, 3, []int{1, 2, 3, 4, 5, 6, 7, 8, 9}}.Rows()
+	expected := [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}
+
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			if result[i][j] != expected[i][j] {
+				t.Errorf("Wrong Matrix")
+			}
+		}
+	}
+}
+
+func Test_Cols(t *testing.T) {
+	result := Matrix{3, 3, []int{1, 2, 3, 4, 5, 6, 7, 8, 9}}.Cols()
+	expected := [][]int{{1, 4, 7}, {2, 5, 8}, {3, 6, 9}}
+
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			if result[i][j] != expected[i][j] {
+				t.Errorf("Wrong Matrix")
+			}
+		}
+	}
+}
+
+func Test_Set(t *testing.T) {
+	matrix := Matrix{2, 2, []int{1, 2, 3, 4}}
+	expected := []int{1, 2, 3, 100}
+
+	result := matrix.Set(-1, 2, 100)
+	if result {
+		t.Errorf("Wrong input")
+	}
+
+	result = matrix.Set(1, 1, 100)
+
+	for i := 0; i < len(expected); i++ {
+		if expected[i] != matrix.data[i] {
+			t.Errorf("Wrong Matrix")
+		}
+	}
+}
